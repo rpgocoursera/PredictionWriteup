@@ -46,6 +46,7 @@ library(ggplot2); library(caret)
 featurePlot(x=pmlTraining[ ,c("roll_belt","pitch_belt","yaw_belt", "roll_arm","pitch_arm", "yaw_arm", "roll_forearm", "pitch_forearm", "yaw_forearm", "roll_dumbbell", "pitch_dumbbell", "yaw_dumbbell") ], y = pmlTraining$classe, plot="pairs" )
 ```
 
+
 #### Data Cleaning
 
 Based on the observation above, the following data cleaning will be performed.
@@ -95,13 +96,15 @@ max(modelSVM$results$Accuracy)
 max(modelGBM$results$Accuracy)
 ```
 
-Since Random Forest is the model with the highest accuracy, the model will be used to evaluate the accuracy on the test data.
+Since Random Forest is the model with the highest accuracy, the model will be used to evaluate the accuracy on the test data.  With Random Forest model, the out of sample error is expected to be less than 1%.
 ```{r revalidate}
 predictRF <- predict( modelRF, myTest )
 confusionMatrix( predictRF, myTest$classe)
 ```
 
-From the result above, Random Forest Model accurracy is about the same with the training model result, which means there is no overfitting on the model and can be used to run on the Test set to get the 20 predictions. The results are given below.
+From the result above, Random Forest Model accurracy is about the same with the training model result, which means there is no overfitting on the model and can be used to run on the Test set to get the 20 predictions. The cross validation error matches well with the expected error.
+
+Running the model with the test data, the results are given below.
 
 ```{r predicttest}
 predict(modelRF, newdata=pmlTesting)

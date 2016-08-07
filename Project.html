@@ -206,46 +206,47 @@ modelRF &lt;- train(classe~., data=myTrain, method=&quot;rf&quot;, trControl=con
 <pre><code>## Loaded gbm 2.1.1</code></pre>
 <pre><code>## Loading required package: plyr</code></pre>
 <pre class="r"><code>max(modelRF$results$Accuracy)</code></pre>
-<pre><code>## [1] 0.991919</code></pre>
+<pre><code>## [1] 0.9912651</code></pre>
 <pre class="r"><code>max(modelSVM$results$Accuracy)</code></pre>
-<pre><code>## [1] 0.9204347</code></pre>
+<pre><code>## [1] 0.9230537</code></pre>
 <pre class="r"><code>max(modelGBM$results$Accuracy)</code></pre>
-<pre><code>## [1] 0.9598891</code></pre>
-<p>Since Random Forest is the model with the highest accuracy, the model will be used to evaluate the accuracy on the test data.</p>
+<pre><code>## [1] 0.9620726</code></pre>
+<p>Since Random Forest is the model with the highest accuracy, the model will be used to evaluate the accuracy on the test data. With Random Forest model, the out of sample error is expected to be less than 1%.</p>
 <pre class="r"><code>predictRF &lt;- predict( modelRF, myTest )
 confusionMatrix( predictRF, myTest$classe)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1672    4    0    0    0
-##          B    2 1130    9    0    0
-##          C    0    5 1016    9    0
-##          D    0    0    1  954    0
-##          E    0    0    0    1 1082
+##          A 1671    8    0    0    0
+##          B    1 1127    6    0    2
+##          C    2    4 1016    6    2
+##          D    0    0    4  958    4
+##          E    0    0    0    0 1074
 ## 
 ## Overall Statistics
-##                                           
-##                Accuracy : 0.9947          
-##                  95% CI : (0.9925, 0.9964)
-##     No Information Rate : 0.2845          
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.9933          
-##  Mcnemar's Test P-Value : NA              
+##                                          
+##                Accuracy : 0.9934         
+##                  95% CI : (0.991, 0.9953)
+##     No Information Rate : 0.2845         
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
+##                                          
+##                   Kappa : 0.9916         
+##  Mcnemar's Test P-Value : NA             
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9988   0.9921   0.9903   0.9896   1.0000
-## Specificity            0.9991   0.9977   0.9971   0.9998   0.9998
-## Pos Pred Value         0.9976   0.9904   0.9864   0.9990   0.9991
-## Neg Pred Value         0.9995   0.9981   0.9979   0.9980   1.0000
+## Sensitivity            0.9982   0.9895   0.9903   0.9938   0.9926
+## Specificity            0.9981   0.9981   0.9971   0.9984   1.0000
+## Pos Pred Value         0.9952   0.9921   0.9864   0.9917   1.0000
+## Neg Pred Value         0.9993   0.9975   0.9979   0.9988   0.9983
 ## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-## Detection Rate         0.2841   0.1920   0.1726   0.1621   0.1839
-## Detection Prevalence   0.2848   0.1939   0.1750   0.1623   0.1840
-## Balanced Accuracy      0.9989   0.9949   0.9937   0.9947   0.9999</code></pre>
-<p>From the result above, Random Forest Model accurracy is about the same with the training model result, which means there is no overfitting on the model and can be used to run on the Test set to get the 20 predictions. The results are given below.</p>
+## Detection Rate         0.2839   0.1915   0.1726   0.1628   0.1825
+## Detection Prevalence   0.2853   0.1930   0.1750   0.1641   0.1825
+## Balanced Accuracy      0.9982   0.9938   0.9937   0.9961   0.9963</code></pre>
+<p>From the result above, Random Forest Model accurracy is about the same with the training model result, which means there is no overfitting on the model and can be used to run on the Test set to get the 20 predictions. The cross validation error matches well with the expected error.</p>
+<p>Running the model with the test data, the results are given below.</p>
 <pre class="r"><code>predict(modelRF, newdata=pmlTesting)</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
