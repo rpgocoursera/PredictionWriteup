@@ -1,0 +1,109 @@
+---
+title: "Prediction Assignment Writeup"
+date: "August 7, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+
+### Goal
+The goal of this project is to predict the manner in which the participants did the exercise (the "classe" variable) and use a prediction model to predict 20 different test cases. 
+
+### WLE Dataset
+
+#### Data Observation
+Get data from source
+```{r getdata}
+pmlTraining <- read.csv(url("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"), na.strings=c("NA","","#DIV/0!"))
+pmlTesting <- read.csv(url("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"), na.strings=c("NA","","#DIV/0!")) 
+```
+
+The training data set is rather large with 19622 observations. The testing data set has 20 observations.
+```{r datasize}
+dim(pmlTraining)
+dim(pmlTesting)
+```
+
+While the data is large, including all the data will not improve the accuracy of  models. Removing some of the data will also optimise model generation. After exploration on the data set, the following observations are made:
+
+* The first seven predictors, which include the counter, name of participants and timestamp, are not useful since they do not contribute to the prediction of classe.
+
+* There are a lot NAs which do not contribute to the prediction
+
+* There are a lot of predictors which will increase time required to create the models. The data may be optimised by removing predictors with low variance, which will optimise model generation without reducing accuracy.
+
+
+There are four sensors attached to each subject, at the arm, forearm, belt and dumbell. The plot of data from these four sensors do not immediately show anything of interest.
+
+```{r featureplot}
+library(ggplot2); library(caret)
+featurePlot(x=pmlTraining[ ,c("roll_belt","pitch_belt","yaw_belt", "roll_arm","pitch_arm", "yaw_arm", "roll_forearm", "pitch_forearm", "yaw_forearm", "roll_dumbbell", "pitch_dumbbell", "yaw_dumbbell") ], y = pmlTraining$classe, plot="pairs" )
+```
+
+#### Data Cleaning
+
+Based on the observation above, the following data cleaning will be performed.
+
+* The first seven predictors will be removed.
+```{r removepredictors}
+pmlTraining = pmlTraining[,-c(1:7)]
+```
+
+* Low variance predictors will be removed.
+```{r removevariance}
+nsv = nearZeroVar( pmlTraining, saveMetrics=TRUE )
+pmlTraining = pmlTraining[ , !nsv$nzv ]
+```
+
+* Remove predictors with NAs
+```{r removeNAS}
+pmlTraining = pmlTraining [ , colSums(is.na(pmlTraining )) == 0]
+```
+
+### Models and Validation
+
+Random Forest, Gradient Boost and Support Vector Machine with Radial are selected for comparison.
+
+For modeling and validation, the data will be splilt into a training and validation set. The training set will be used to determine which model has the highest accuracy. The model with the highest accuracy will be validated using the validation set.
+
+```{r datasplit}
+inTrain = createDataPartition( y=pmlTraining$classe, p=0.7, list=FALSE)
+myTrain = pmlTraining[ inTrain, ]
+myTest  = pmlTraining[ -inTrain, ]
+
+```
+
+Modelling will be based on 8 fold cross validation to avoid overfitting and reduce out of sample error.
+
+```{r runmodeling}
+control <- trainControl(method="cv", number=8)
+set.seed(1927)
+modelRF <- train(classe~., data=myTrain, method="rf", trControl=control)
+modelSVM <- train(classe~., data=myTrain, method="svmRadial", trControl=control)
+modelGBM <- train(classe~., data=myTrain, method="gbm", trControl=control, verbose=FALSE)
+```
+
+```{r resultsaccuracy}
+max(modelRF$results$Accuracy)
+max(modelSVM$results$Accuracy)
+max(modelGBM$results$Accuracy)
+```
+
+Since Random Forest is the model with the highest accuracy, the model will be used to evaluate the accuracy on the test data.
+```{r revalidate}
+predictRF <- predict( modelRF, myTest )
+confusionMatrix( predictRF, myTest$classe)
+```
+
+From the result above, Random Forest Model accurracy is about the same with the training model result, which means there is no overfitting on the model and can be used to run on the Test set to get the 20 predictions. The results are given below.
+
+```{r predicttest}
+predict(modelRF, newdata=pmlTesting)
+```
+ 
